@@ -308,7 +308,7 @@ if __name__ == "__main__":
         c_opt = solver.solve(c.vector()[:])
 
         # compute optimal deformation
-        w_opt = control_to_deformation(c_opt, reg)
+        w_opt = control_to_deformation(preproc.dof_to_rho(c_opt), reg)
 
         # move mesh
         ALE.move(mesh, w_opt)
