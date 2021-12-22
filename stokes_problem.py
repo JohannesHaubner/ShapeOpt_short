@@ -6,6 +6,9 @@ from pyadjoint.overloaded_type import create_overloaded_object
 from pyadjoint.reduced_functional_numpy import ReducedFunctionalNumPy as RFNP
 from scipy import sparse
 
+import ipopt_solver as ipopt
+from preprocessing import Preprocessing
+
 from boundary_to_domain_overloaded import boundary_to_domain
 import numpy as np
 set_log_level(LogLevel.ERROR)
@@ -53,7 +56,7 @@ def inner_product(V):
     v = TestFunction(V)
     u = TrialFunction(V)
     M = assemble( v * u * dx)
-    return sparse.csc_matrix(M)
+    return sparse.csc_matrix(M.array())
 
 def forward(mesh):
     # The next step is to set up :eq:`state`. We start by defining the
@@ -268,13 +271,12 @@ if __name__ == "__main__":
 
         # We define the reduced functional, where :math:`c` is the design parameter# and use scipy to minimize the objective.
         m = Control(c)
-        Jhat = ReducedFunctional(J, m)
+        Jhat = [ReducedFunctional(J, m)]
+        scaling_Jhat = [1.0]
 
-        perturbation = interpolate(Expression(("-A*x[0]"),
-                                              A=0.005, degree=2), C)
-        results = taylor_to_dict(Jhat, c, perturbation)
-        print(results)
-        exit(0)
+        #perturbation = interpolate(Expression(("-A*x[0]"),
+        #                                      A=0.005, degree=2), C)
+        #results = taylor_to_dict(Jhat, c, perturbation)
 
         # Define constraints
         (x, y) = SpatialCoordinate(mesh)
@@ -286,18 +288,24 @@ if __name__ == "__main__":
         bcx = ReducedFunctional(bc_x_constraint, m)
         bcy = ReducedFunctional(bc_y_constraint, m)
 
-        exit(0)
+        constraints = [vc, bcx, bcy]
+        scaling_constraints = [1.0, 1.0, 1.0]
+        bounds = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+        preproc = Preprocessing(C)
 
-        ## replace optimization with custom ipopt
-        ## Solve optimization problem
-        #problem = MinimizationProblem(Jhat, constraints=Constraints())
+        inner_product_matrix = inner_product(C)
+
+        # problem
+        problem = ipopt.IPOPTProblem(Jhat, scaling_Jhat, constraints, scaling_constraints, bounds, preproc,
+                               inner_product_matrix, reg)
+        solver = ipopt.IPOPTSolver(problem)
+
         #parameters = {#'derivative_test': 'first-order',
         #              'maximum_iterations': 100,
         #              'tol': 1e-5,
         #              'point_perturbation_radius': 0.0}
 
-        #solver = IPOPTSolver(problem, parameters=parameters)
-        #c_opt = solver.solve()
+        c_opt = solver.solve(c.vector()[:])
 
         # compute optimal deformation
         w_opt = control_to_deformation(c_opt, reg)

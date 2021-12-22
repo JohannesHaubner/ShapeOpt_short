@@ -8,7 +8,7 @@ class Preprocessing:
         self.V = FunctionSpace
 
     def dof_to_rho(self, x):
-        func = Function(V)
+        func = Function(self.V)
         func.vector()[:] = x
         return func
 
