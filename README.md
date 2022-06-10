@@ -5,8 +5,8 @@ Requires a recent master version of dolfin with MeshView support.
 
 The Dockerfile (preliminary version) can be used by running:
 ```
-docker build -t learnext .
-docker run -it learnext
+docker build -t shapeopt .
+docker run -it shapeopt
 ```
 
 first run create_mesh.py, then stokes_problem.py
