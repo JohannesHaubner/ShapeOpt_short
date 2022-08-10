@@ -36,7 +36,7 @@ RUN wget http://www.coin-or.org/download/source/Ipopt/Ipopt-3.12.6.tgz && \
 ##################
     cd ../../ && \
     mkdir build && \
-    cd build && \.
+    cd build && \
     ../configure -with-pic --prefix=/venv/ && \
     make -j3 && \
     make test && \
