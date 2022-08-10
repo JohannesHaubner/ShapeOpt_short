@@ -10,7 +10,7 @@ from scipy.sparse.linalg import spsolve, splu
 from scipy.sparse import diags
 
 
-import ipopt
+import cyipopt as ipopt
 
 import matplotlib.pyplot as plt
 
@@ -71,7 +71,7 @@ class IPOPTProblem:
 class IPOPTSolver(OptimizationSolver):
     def __init__(self, problem, parameters=None):
         try:
-            import ipopt
+            import cyipopt as ipopt
         except ImportError:
             print("You need to install cyipopt. (It is recommended to install IPOPT with HSL support!)")
             raise
@@ -272,7 +272,7 @@ class IPOPTSolver(OptimizationSolver):
         ub = np.array([max_float] * len(x0))
         lb = np.array([min_float] * len(x0))
 
-        nlp = ipopt.problem(
+        nlp = ipopt.Problem(
             n=len(x0),
             m=len(cl),
             problem_obj=self.problem_obj,
@@ -285,17 +285,17 @@ class IPOPTSolver(OptimizationSolver):
         # initial point trafo
         x0 = self.problem.initial_point_trafo(x0)
 
-        nlp.addOption('mu_strategy', 'adaptive')
-        nlp.addOption('hessian_approximation', 'limited-memory')
-        nlp.addOption('limited_memory_update_type', 'bfgs')
-        nlp.addOption('limited_memory_max_history', 50)
-        nlp.addOption('point_perturbation_radius', 0.0)
+        nlp.add_option('mu_strategy', 'adaptive')
+        nlp.add_option('hessian_approximation', 'limited-memory')
+        nlp.add_option('limited_memory_update_type', 'bfgs')
+        nlp.add_option('limited_memory_max_history', 50)
+        nlp.add_option('point_perturbation_radius', 0.0)
 
         # a benefitial option for starts close to solution:
-        nlp.addOption('bound_mult_init_method', 'mu-based')
+        nlp.add_option('bound_mult_init_method', 'mu-based')
 
-        nlp.addOption('max_iter', 200)
-        nlp.addOption('tol', 1e-3)
+        nlp.add_option('max_iter', 200)
+        nlp.add_option('tol', 1e-3)
 
         x, info = nlp.solve(x0)
         x = self.problem.transformation(x)

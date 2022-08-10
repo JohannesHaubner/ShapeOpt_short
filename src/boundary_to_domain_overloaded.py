@@ -4,9 +4,7 @@ from dolfin_adjoint import *
 from pyadjoint import Block
 from pyadjoint.overloaded_function import overload_function
 
-import numpy as np
-
-from boundary_to_domain import boundary_to_domain
+from src.boundary_to_domain import boundary_to_domain
 
 backend_boundary_to_domain = boundary_to_domain
 

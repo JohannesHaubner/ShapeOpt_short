@@ -1,14 +1,18 @@
 import numpy as np
+import pygmsh
 
 inflow_marker = 1
 outflow_marker = 2
 wall_marker = 3
 obstacle_marker = 4
-resolution = 0.05
-L = 10  # Length of channel
-H = 6  # Width of channel
-c_x, c_y = L / 2, H / 2  # Position of object
-r_x = 0.5  # Radius of object
+# resolution
+resolution = 0.2 #1 # 0.005 #0.1
+
+# geometric properties
+L = 10 #2.5 #20            # length of channel
+H = 6 #0.4 #6           # heigth of channel
+c = [5, 3, 0]  #[0.2, 0.2, 0] #[10, 3, 0]  # position of object
+r = 0.5 #0.05 #0.5 # radius of object
 
 
 def create_stokes_mesh(res):
@@ -31,67 +35,53 @@ def create_stokes_mesh(res):
               "- gmsh \n - meshio")
         exit(1)
 
-    gmsh.initialize()
+    # Initialize empty geometry using the build in kernel in GMSH
+    geometry = pygmsh.geo.Geometry()
+    # Fetch model we would like to add data to
+    model = geometry.__enter__()
+    # Add circle
+    pc = model.add_point(c)
+    sin = 0.5  # sin(30°)
+    cos = np.sqrt(3) / 2  # cos(30°)
+    pc0 = model.add_point(c)
+    pc1 = model.add_point((c[0] - r, c[1], 0), mesh_size=0.1 * resolution)
+    pc2 = model.add_point((c[0] + cos * r, c[1] + sin * r, 0), mesh_size=0.1 * resolution)
+    pc3 = model.add_point((c[0] + cos * r, c[1] - sin * r, 0), mesh_size=0.1 * resolution)
+    circle1 = model.add_circle_arc(pc2, pc0, pc1)
+    circle2 = model.add_circle_arc(pc1, pc0, pc3)
+    circle3 = model.add_circle_arc(pc3, pc0, pc2)
+    circle = model.add_curve_loop([circle1, circle2, circle3])
 
-    # Create geometry
-    c = gmsh.model.occ.addPoint(c_x, c_y, 0)
-    p1 = gmsh.model.occ.addPoint(c_x - r_x, c_y, 0)
-    p2 = gmsh.model.occ.addPoint(c_x, c_y + r_x, 0)
-    p3 = gmsh.model.occ.addPoint(c_x + r_x, c_y, 0)
-    p4 = gmsh.model.occ.addPoint(c_x, c_y - r_x, 0)
-    arc_1 = gmsh.model.occ.addEllipseArc(p1, c, p2, p2)
-    arc_2 = gmsh.model.occ.addEllipseArc(p2, c, p3, p3)
-    arc_3 = gmsh.model.occ.addEllipseArc(p3, c, p4, p4)
-    arc_4 = gmsh.model.occ.addEllipseArc(p4, c, p1, p1)
-    obstacle_loop = gmsh.model.occ.addCurveLoop([arc_1, arc_2, arc_3, arc_4])
-    rectangle = gmsh.model.occ.addRectangle(0, 0, 0, L, H)
-    gmsh.model.occ.synchronize()
-    obstacle_loop = gmsh.model.occ.addCurveLoop([arc_1, arc_2, arc_3, arc_4])
+    # Add points with finer resolution on left side
+    points = [model.add_point((0, 0, 0), mesh_size=resolution),
+              model.add_point((L, 0, 0), mesh_size=resolution),  # 5*resolution
+              model.add_point((L, H, 0), mesh_size=resolution),  # 5*resolution
+              model.add_point((0, H, 0), mesh_size=resolution)]
 
-    exterior_boundary = gmsh.model.getBoundary([(2, rectangle)])
-    obstacle = gmsh.model.occ.addPlaneSurface([obstacle_loop])
+    # Add lines between all points creating the rectangle
+    channel_lines = [model.add_line(points[i], points[i + 1])
+                     for i in range(-1, len(points) - 1)]
 
-    fluid = gmsh.model.occ.cut([(2, rectangle)], [(2, obstacle)])
-    gmsh.model.occ.synchronize()
+    # Create a line loop and plane surface for meshing
+    channel_loop = model.add_curve_loop(channel_lines)
+    plane_surface = model.add_plane_surface(
+        channel_loop, holes=[circle])
 
-    # Create physical markers
-    lines = gmsh.model.occ.getEntities(dim=1)
-    walls = []
-    obstacles = []
-    for line in lines:
-        com = gmsh.model.occ.getCenterOfMass(line[0], line[1])
-        if np.allclose(com, [0, H / 2, 0]):
-            gmsh.model.addPhysicalGroup(line[0], [line[1]], inflow_marker)
-            gmsh.model.setPhysicalName(line[0], inflow_marker, "Fluid inlet")
-        elif np.allclose(com, [L, H / 2, 0]):
-            gmsh.model.addPhysicalGroup(line[0], [line[1]], outflow_marker)
-            gmsh.model.setPhysicalName(line[0], outflow_marker, "Fluid outlet")
-        elif np.allclose(com, [L / 2, 0, 0]) or np.allclose(com, [L / 2, H, 0]):
-            walls.append(line[1])
-        else:
-            obstacles.append(line[1])
-    gmsh.model.addPhysicalGroup(1, walls, wall_marker)
-    gmsh.model.setPhysicalName(1, wall_marker, "Walls")
-    gmsh.model.addPhysicalGroup(1, obstacles, obstacle_marker)
-    gmsh.model.setPhysicalName(1, obstacle_marker, "Obstacle")
+    # Call gmsh kernel before add physical entities
+    model.synchronize()
 
-    # Specify mesh resolution
-    gmsh.model.mesh.field.add("Distance", 1)
-    gmsh.model.mesh.field.setNumbers(1, "EdgesList", obstacles)
-    gmsh.model.mesh.field.add("Threshold", 2)
-    gmsh.model.mesh.field.setNumber(2, "IField", 1)
-    gmsh.model.mesh.field.setNumber(2, "LcMin", res)
-    gmsh.model.mesh.field.setNumber(2, "LcMax", 4 * res)
-    gmsh.model.mesh.field.setNumber(2, "DistMin", 0.5 * r_x)
-    gmsh.model.mesh.field.setNumber(2, "DistMax", 2 * r_x)
-    gmsh.model.mesh.field.add("Min", 5)
-    gmsh.model.mesh.field.setNumbers(5, "FieldsList", [2])
-    gmsh.model.mesh.field.setAsBackgroundMesh(5)
+    volume_marker = 6
+    model.add_physical([channel_lines[0]], "inflow")  # mark inflow boundary with 1
+    model.add_physical([channel_lines[2]], "outflow")  # mark outflow boundary with 2
+    model.add_physical([channel_lines[1], channel_lines[3], circle3], "walls")  # mark walls with 3
+    model.add_physical([circle1, circle2], "obstacle")  # mark obstacle with 4
+    model.add_physical([plane_surface], "Volume")
 
-    gmsh.model.mesh.generate(2)
-
-    gmsh.model.addPhysicalGroup(fluid[0][0][0], [fluid[0][0][1]], 12)
+    geometry.generate_mesh(dim=2)
+    import gmsh
     gmsh.write("mesh.msh")
+    gmsh.clear()
+    geometry.__exit__()
 
     # Read in and convert mesh to msh
     msh = meshio.read("mesh.msh")

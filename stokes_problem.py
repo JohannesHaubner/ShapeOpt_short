@@ -1,15 +1,13 @@
-import matplotlib.pyplot as plt
 from create_mesh import inflow_marker, outflow_marker, wall_marker, obstacle_marker, c_x, c_y, L, H
 from dolfin import *
 from dolfin_adjoint import *
 from pyadjoint.overloaded_type import create_overloaded_object
-from pyadjoint.reduced_functional_numpy import ReducedFunctionalNumPy as RFNP
 from scipy import sparse
 
-import ipopt_solver as ipopt
-from preprocessing import Preprocessing
+from src import ipopt_solver as ipopt
+from src.preprocessing import Preprocessing
 
-from boundary_to_domain_overloaded import boundary_to_domain
+from src.boundary_to_domain_overloaded import boundary_to_domain
 import numpy as np
 set_log_level(LogLevel.ERROR)
 
@@ -28,7 +26,7 @@ def control_to_deformation(c, reg):
     psib = TestFunction(B)
 
     a = reg * inner(grad(b), grad(psib)) * dx + inner(b, psib) * dx
-    l = inner(c* n,psib) * dxb
+    l = inner(c * n, psib) * dxb
 
     bcs = DirichletBC(B, Constant((0.0, 0.0)), 'on_boundary')
 
