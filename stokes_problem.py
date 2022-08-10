@@ -200,10 +200,10 @@ if __name__ == "__main__":
                                inner_product_matrix, reg)
         solver = ipopt.IPOPTSolver(problem)
 
-        #parameters = {#'derivative_test': 'first-order',
-        #              'maximum_iterations': 100,
-        #              'tol': 1e-5,
-        #              'point_perturbation_radius': 0.0}
+        parameters = {#'derivative_test': 'first-order',
+                      'maximum_iterations': 100,
+                      'tol': 1e-5,
+                      'point_perturbation_radius': 0.0}
 
         c_opt = solver.solve(c.vector()[:])
 

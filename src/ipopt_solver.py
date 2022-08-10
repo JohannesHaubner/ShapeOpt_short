@@ -75,6 +75,7 @@ class IPOPTSolver(OptimizationSolver):
         except ImportError:
             print("You need to install cyipopt. (It is recommended to install IPOPT with HSL support!)")
             raise
+        self.parameters = parameters
         self.problem = problem
         self.problem_obj = self.create_problem_obj(self)
 
@@ -259,6 +260,18 @@ class IPOPTSolver(OptimizationSolver):
             else:
                 raise TypeError('Unknown control type %s.' % str(type(m)))
 
+    def __set_parameters(self, nlp):
+        """Set some basic parameters from the parameters dictionary that the user
+        passed in, if any.
+        Code snippet from pyadjoint/optimization/ipopt_solver.py
+        """
+
+        if self.parameters is not None:
+            for param, value in self.parameters.items():
+                # some parameters have a different name in ipopt
+                param = self._param_map.get(param, param)
+                self.nlp.add_option(param, value)
+
     def solve(self, x0):
         max_float = np.finfo(np.double).max
         min_float = np.finfo(np.double).min
@@ -296,6 +309,8 @@ class IPOPTSolver(OptimizationSolver):
 
         nlp.add_option('max_iter', 200)
         nlp.add_option('tol', 1e-3)
+
+        self.__set_parameters(nlp)
 
         x, info = nlp.solve(x0)
         x = self.problem.transformation(x)
