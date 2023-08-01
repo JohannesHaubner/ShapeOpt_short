@@ -1,6 +1,7 @@
 # ShapeOpt_short
 
 Short version of implementation https://github.com/JohannesHaubner/ShapeOpt 
+
 Here:
 - the code does not run in parallel
 - only the Stokes example is implemented
