@@ -25,7 +25,7 @@ docker pull ghcr.io/johanneshaubner/shapeopt
 docker run -ti -v ${PWD}:/root/shared -w /root/shared --entrypoint=/bin/bash --rm ghcr.io/johanneshaubner/shapeoopt
 ```
 
-Run it with the commands
+Run the code with the commands
 ```
 python3 create_mesh.py
 python3 stokes_problem.py
