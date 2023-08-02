@@ -18,7 +18,7 @@ docker run -it shapeopt
 or
 ```
 docker pull ghcr.io/johanneshaubner/shapeopt
-docker run -ti -v ${PWD}:/root/shared -w /root/shared --entrypoint=/bin/bash --rm shapeoopt
+docker run -ti -v ${PWD}:/root/shared -w /root/shared --entrypoint=/bin/bash --rm ghcr.io/johanneshaubner/shapeoopt
 ```
 
 first run create_mesh.py, then stokes_problem.py
