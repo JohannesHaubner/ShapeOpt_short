@@ -1,6 +1,8 @@
 # ShapeOpt_short
 
-Short version of implementation https://github.com/JohannesHaubner/ShapeOpt 
+Short version of implementation https://github.com/JohannesHaubner/ShapeOpt for
+
+>J. Haubner, M. Ulbrich: Advanced Numerical Methods for Shape Optimal Design of Fluid-Structure Interaction Problems.
 
 Here:
 - the code does not run in parallel
