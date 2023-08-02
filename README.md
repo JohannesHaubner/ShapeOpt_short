@@ -6,7 +6,7 @@ Short version of implementation https://github.com/JohannesHaubner/ShapeOpt for
 
 Here:
 - the code does not run in parallel
-- only the Stokes example is implemented
+- only a Stokes example is implemented
 
 ## Usage/Examples
 
