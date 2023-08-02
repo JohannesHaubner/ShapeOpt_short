@@ -4,6 +4,10 @@ Short version of implementation https://github.com/JohannesHaubner/ShapeOpt for
 
 >J. Haubner, M. Ulbrich: Advanced Numerical Methods for Shape Optimal Design of Fluid-Structure Interaction Problems.
 
+with an iterative procedure as used in 
+
+>J. Haubner, M. Siebenborn, M. Ulbrich: A continuous perspective on shape optimization via domain transformations, SIAM Journal on Scientific Computing 43 (3), A1997-A2018.
+
 Here:
 - the code does not run in parallel
 - only a Stokes example is implemented
