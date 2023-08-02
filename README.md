@@ -25,7 +25,11 @@ docker pull ghcr.io/johanneshaubner/shapeopt
 docker run -ti -v ${PWD}:/root/shared -w /root/shared --entrypoint=/bin/bash --rm ghcr.io/johanneshaubner/shapeoopt
 ```
 
-first run create_mesh.py, then stokes_problem.py
+Run it with the commands
+```
+python3 create_mesh.py
+python3 stokes_problem.py
+```
 
 If not ran from Docker image:
 Requires a recent master version of dolfin with MeshView support. Requires the changes propsed in https://bitbucket.org/fenics-project/dolfin/issues/1123/assemble-on-mixed-meshview-forms-returns.
