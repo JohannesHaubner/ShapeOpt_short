@@ -2,7 +2,7 @@
 
 Short version of implementation https://github.com/JohannesHaubner/ShapeOpt for
 
->J. Haubner, M. Ulbrich: Advanced Numerical Methods for Shape Optimal Design of Fluid-Structure Interaction Problems.
+>J. Haubner, M. Ulbrich: Numerical Methods for Shape Optimal Design of Fluid-Structure Interaction Problems.
 
 with an iterative procedure as used in 
 
